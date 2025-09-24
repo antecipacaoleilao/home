@@ -1,15 +1,11 @@
 const { jsPDF } = window.jspdf;
-
-// inicializa o pad de assinatura
 const canvas = document.getElementById("signature-pad");
 const signaturePad = new SignaturePad(canvas);
 
-// limpar assinatura
 document.getElementById("clear").addEventListener("click", () => {
   signaturePad.clear();
 });
 
-// gerar PDF com contrato + assinatura
 document.getElementById("generate").addEventListener("click", () => {
   if (signaturePad.isEmpty()) {
     alert("Por favor, assine antes de gerar o PDF.");
@@ -20,8 +16,6 @@ document.getElementById("generate").addEventListener("click", () => {
   const pdf = new jsPDF({ unit: "pt", format: "a4" });
   const margem = 40;
   const larguraTexto = 500;
-
-  // divide o texto em várias páginas se necessário
   const linhas = pdf.splitTextToSize(contratoTexto, larguraTexto);
   let y = 60;
 
@@ -34,12 +28,17 @@ document.getElementById("generate").addEventListener("click", () => {
     y += 20;
   });
 
-  // nova página para assinatura
+  // Página da assinatura
   pdf.addPage();
   pdf.text("Assinatura do Cliente:", margem, 80);
 
+  // Captura o canvas real para o PDF (sincronizado)
   const dataURL = signaturePad.toDataURL("image/png");
-  pdf.addImage(dataURL, "PNG", margem, 100, 400, 100);
+  const canvasWidth = canvas.width;
+  const canvasHeight = canvas.height;
+  const pdfWidth = 500; // largura desejada no PDF
+  const pdfHeight = (canvasHeight / canvasWidth) * pdfWidth; // proporcional
+  pdf.addImage(dataURL, "PNG", margem, 100, pdfWidth, pdfHeight);
 
   pdf.save("contrato-assinado.pdf");
 });
